@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>استمارة الغاز — ناتجاس</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue-dark:  #0a2d6e;
+      --blue:       #1a56a0;
+      --blue-mid:   #2470c8;
+      --blue-light: #e8f1fb;
+      --green:      #27ae60;
+      --accent:     #f39c12;
+      --danger:     #e74c3c;
+      --white:      #ffffff;
+      --bg:         #f0f5fc;
+      --text:       #1a2535;
+      --muted:      #6b7f99;
+      --border:     #cdd8ea;
+      --radius:     16px;
+      --shadow:     0 8px 32px rgba(10,45,110,0.13);
+    }
+    body { font-family: 'Cairo', sans-serif; background: linear-gradient(160deg, #a8ddd9 0%, #b8e8f0 30%, #d0eef8 60%, #e8f6fc 100%); background-attachment: scroll; color: var(--text); min-height: 100vh; overflow-x: hidden; }
+    body.hero-loaded::after { content: ''; position: fixed; inset: 0; background: rgba(220,240,248,0.72); z-index: -1; pointer-events: none; }
+
+    /* ═══ HEADER ═══ */
+    .header { background: transparent; padding: 28px 20px 90px; text-align: center; position: relative; overflow: hidden; }
+    .header::before { content: ''; position: absolute; top: -60px; left: -60px; width: 300px; height: 300px; background: rgba(255,255,255,0.04); border-radius: 50%; }
+    .header::after  { content: ''; position: absolute; bottom: -80px; right: -40px; width: 250px; height: 250px; background: rgba(255,255,255,0.04); border-radius: 50%; }
+    .header-inner { position: relative; z-index: 1; }
+    .logo-wrap { display: inline-flex; align-items: center; justify-content: center; background: transparent; border-radius: 0; padding: 0; margin-bottom: 16px; box-shadow: none; }
+    .logo-wrap img { height: 100px; width: auto; display: block; }
+    .logo-fallback { font-size: 28px; font-weight: 900; display: none; }
+    .logo-fallback span:first-child { color: var(--white); }
+    .logo-fallback span:last-child  { color: #27ae60; }
+    .header h1 { color: #0a2d6e; font-size: clamp(20px,4vw,30px); font-weight: 800; margin-bottom: 8px; }
+    .header p  { color: #2a5080; font-size: 13px; max-width: 500px; margin: 0 auto; line-height: 1.8; }
+
+    /* ═══ CONTAINER ═══ */
+    .container { max-width: 680px; margin: -60px auto 60px; padding: 0 16px; position: relative; z-index: 1; }
+
+    /* ═══ STEP INDICATOR ═══ */
+    .step-indicator { background: var(--white); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 20px; box-shadow: var(--shadow); display: flex; align-items: center; }
+    .step-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; }
+    .step-item:not(:last-child)::after { content: ''; position: absolute; top: 18px; left: 0; width: 100%; height: 2px; background: var(--border); z-index: 0; transition: background 0.4s; }
+    .step-item.done:not(:last-child)::after, .step-item.active:not(:last-child)::after { background: var(--blue); }
+    .step-num { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; background: var(--border); color: var(--muted); position: relative; z-index: 1; transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+    .step-item.active .step-num { background: var(--blue); color: var(--white); box-shadow: 0 4px 14px rgba(26,86,160,0.45); transform: scale(1.15); }
+    .step-item.done  .step-num { background: var(--green); color: var(--white); }
+    .step-label { font-size: 11px; font-weight: 600; color: var(--muted); text-align: center; transition: color 0.3s; }
+    .step-item.active .step-label { color: var(--blue); }
+    .step-item.done  .step-label  { color: var(--green); }
+
+    /* ═══ FORM CARD ═══ */
+    .form-card { background: var(--white); border-radius: var(--radius); padding: 32px 28px; box-shadow: var(--shadow); overflow: hidden; }
+    .step { display: none; }
+    .step.active { display: block; animation: slideIn 0.4s cubic-bezier(0.25,0.46,0.45,0.94); }
+    .step.back    { animation: slideInR 0.4s cubic-bezier(0.25,0.46,0.45,0.94); }
+    @keyframes slideIn  { from { opacity:0; transform:translateX(-28px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes slideInR { from { opacity:0; transform:translateX(28px);  } to { opacity:1; transform:translateX(0); } }
+    @keyframes fadeIn   { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+
+    .step-title { font-size: 18px; font-weight: 800; color: var(--blue-dark); margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+    .step-title .icon { width: 38px; height: 38px; background: var(--blue-light); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .step-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; margin-right: 48px; }
+
+    /* ═══ FIELDS ═══ */
+    .field { margin-bottom: 18px; }
+    .field label { display: block; font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 7px; }
+    .req { color: var(--danger); margin-right: 3px; }
+    .opt { font-size: 11px; color: var(--muted); font-weight: 500; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    input[type="text"], input[type="tel"], select, textarea {
+      width: 100%; padding: 13px 16px; border: 2px solid var(--border); border-radius: 12px;
+      font-family: 'Cairo', sans-serif; font-size: 14px; color: var(--text);
+      background: #f7fafd; transition: border-color .25s, box-shadow .25s, background .25s;
+      outline: none; direction: rtl;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--blue); background: var(--white); box-shadow: 0 0 0 4px rgba(26,86,160,0.1); }
+    input.err, select.err { border-color: var(--danger) !important; box-shadow: 0 0 0 3px rgba(231,76,60,0.1); }
+    .err-msg { font-size: 12px; color: var(--danger); margin-top: 5px; display: none; animation: fadeIn .2s ease; }
+    .err-msg.show { display: block; }
+
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7f99' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: left 14px center; cursor: pointer; }
+    textarea { resize: vertical; min-height: 85px; }
+
+    /* ═══ PHONE WRAP ═══ */
+    .phone-wrap { display: flex; gap: 8px; direction: rtl; }
+    .phone-wrap input[type="tel"] { flex: 1; min-width: 0; }
+    .phone-wrap select { width: 150px; flex-shrink: 0; font-size: 13px; padding-right: 8px; padding-left: 32px; }
+
+    /* ═══ SEARCHABLE PROJECT DROPDOWN ═══ */
+    .project-search-wrap { position: relative; }
+    .project-search-wrap input[type="text"] { width: 100%; }
+    .project-dropdown {
+      position: absolute; top: calc(100% + 4px); right: 0; left: 0;
+      background: var(--white); border: 2px solid var(--blue);
+      border-radius: 12px; box-shadow: 0 8px 24px rgba(10,45,110,0.15);
+      max-height: 200px; overflow-y: auto; z-index: 100; display: none;
+      animation: fadeIn .15s ease;
+    }
+    .project-dropdown.open { display: block; }
+    .project-option {
+      padding: 11px 16px; font-size: 14px; font-family: 'Cairo', sans-serif;
+      cursor: pointer; border-bottom: 1px solid var(--border); direction: rtl;
+    }
+    .project-option:last-child { border-bottom: none; }
+    .project-option:hover, .project-option.highlighted { background: var(--blue-light); color: var(--blue-dark); font-weight: 700; }
+    .project-option.no-result { color: var(--muted); cursor: default; font-style: italic; }
+
+    /* ═══ RADIO CARDS ═══ */
+    .radio-group { display: flex; flex-direction: column; gap: 12px; }
+    .radio-card { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; background: #f7fafd; transition: all .25s ease; user-select: none; }
+    .radio-card:hover { border-color: var(--blue); background: var(--blue-light); transform: translateY(-1px); }
+    .radio-card.selected { border-color: var(--blue); background: var(--blue-light); box-shadow: 0 4px 14px rgba(26,86,160,0.12); }
+    .radio-card input { display: none; }
+    .radio-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: border-color .25s, background .25s; }
+    .radio-card.selected .radio-dot { border-color: var(--blue); background: var(--blue); }
+    .radio-dot::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--white); opacity: 0; transition: opacity .2s; }
+    .radio-card.selected .radio-dot::after { opacity: 1; }
+    .radio-card-body { flex: 1; }
+    .radio-card-title { font-size: 14px; font-weight: 700; }
+    .radio-card-desc  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .radio-card-emoji { font-size: 26px; }
+
+    /* ═══ FILE UPLOAD ═══ */
+    .upload-box { border: 2px dashed var(--border); border-radius: 12px; padding: 22px 16px; text-align: center; cursor: pointer; background: #f7fafd; transition: all .25s ease; position: relative; }
+    .upload-box:hover { border-color: var(--blue); background: var(--blue-light); }
+    .upload-box.filled { border-color: var(--green); background: #f0fdf4; border-style: solid; }
+    .upload-box input { display: none; }
+    .upload-icon { font-size: 30px; margin-bottom: 6px; }
+    .upload-hint { font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .upload-hint strong { color: var(--blue); }
+    .upload-fname { font-size: 12px; color: var(--green); font-weight: 700; margin-top: 6px; }
+    .upload-preview { width: 100%; max-height: 140px; object-fit: cover; border-radius: 8px; margin-top: 10px; display: none; }
+    .conditional { display: none; margin-top: 18px; }
+    .conditional.show { display: block; animation: fadeIn .3s ease; }
+
+    /* ═══ SUMMARY ═══ */
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+    .summary-item { background: var(--blue-light); border-radius: 10px; padding: 12px 14px; }
+    .summary-item .s-label { font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
+    .summary-item .s-val   { font-size: 14px; font-weight: 700; color: var(--blue-dark); word-break: break-word; }
+    .notice { background: #e8f1fb; border-right: 4px solid var(--blue); border-radius: 10px; padding: 12px 16px; font-size: 12px; color: var(--blue-dark); line-height: 1.7; margin-bottom: 20px; }
+
+    /* ═══ BUTTONS ═══ */
+    .btn-row { display: flex; gap: 12px; margin-top: 28px; justify-content: space-between; align-items: center; }
+    .btn { padding: 13px 32px; border-radius: 50px; font-family: 'Cairo', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; border: none; transition: all .2s ease; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-next   { background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid)); color: var(--white); box-shadow: 0 6px 20px rgba(26,86,160,0.35); flex: 1; justify-content: center; }
+    .btn-next:hover   { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(26,86,160,0.4); }
+    .btn-back   { background: var(--blue-light); color: var(--blue); padding: 13px 22px; }
+    .btn-back:hover   { background: #dde9f8; }
+    .btn-submit { background: linear-gradient(135deg, #1e8449, var(--green)); color: var(--white); box-shadow: 0 6px 20px rgba(39,174,96,0.35); flex: 1; justify-content: center; }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(39,174,96,0.4); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+    .spinner { width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ═══ SUCCESS ═══ */
+    #success { display: none; }
+    .success-inner { background: var(--white); border-radius: var(--radius); padding: 50px 28px; box-shadow: var(--shadow); text-align: center; }
+    .check-anim { width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(135deg,#1e8449,var(--green)); display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 24px; box-shadow: 0 8px 28px rgba(39,174,96,0.35); animation: popIn .5s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes popIn { 0%{transform:scale(0);opacity:0} 100%{transform:scale(1);opacity:1} }
+    .success-inner h2 { font-size: 22px; font-weight: 800; color: var(--blue-dark); margin-bottom: 10px; }
+    .success-inner p  { color: var(--muted); font-size: 14px; line-height: 1.7; }
+
+    .reg-id-badge {
+      margin: 20px auto;
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue-mid));
+      color: var(--white); border-radius: 16px; padding: 20px 28px;
+      display: inline-block; min-width: 220px;
+    }
+    .reg-id-badge .rib-label { font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
+    .reg-id-badge .rib-id { font-size: 32px; font-weight: 900; letter-spacing: 4px; direction: ltr; }
+    .reg-id-badge .rib-note { font-size: 11px; color: rgba(255,255,255,0.65); margin-top: 6px; }
+
+    .copy-btn {
+      background: var(--blue-light); color: var(--blue); border: none;
+      padding: 8px 20px; border-radius: 50px; font-family: 'Cairo',sans-serif;
+      font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 10px;
+    }
+    .copy-btn:hover { background: #dde9f8; }
+    .copy-btn.copied { background: #d4edda; color: var(--green); }
+
+    .success-btns { display: flex; gap: 12px; justify-content: center; margin-top: 24px; flex-wrap: wrap; }
+    .btn-reset { background: var(--blue-light); color: var(--blue); border: none; padding: 13px 28px; border-radius: 50px; font-family: 'Cairo',sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .btn-reset:hover { background: #dde9f8; }
+    .btn-edit-again { background: var(--white); color: var(--blue-dark); border: 2px solid var(--border); padding: 13px 28px; border-radius: 50px; font-family: 'Cairo',sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .btn-edit-again:hover { border-color: var(--blue); background: var(--blue-light); }
+
+    /* ═══ POPUP ═══ */
+    #popup-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.55);
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    #popup-box {
+      background: #fff; border-radius: 20px; padding: 28px 24px;
+      max-width: 440px; width: 100%;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+      animation: popupIn .3s ease;
+      max-height: 90vh; overflow-y: auto;
+    }
+    @keyframes popupIn { from{transform:scale(.92);opacity:0} to{transform:scale(1);opacity:1} }
+
+    #popup-badge { background: url('images-popup.jpg') center/cover no-repeat, linear-gradient(135deg,#1A3A6E,#1a7fd4); border-radius:12px; padding:18px 16px 12px; text-align:center; margin-bottom:18px; min-height: 100px; }
+    .pb-en { font-size:22px; font-weight:900; color:#fff; letter-spacing:3px; display:block; }
+    .pb-ar { font-size:11px; color:rgba(255,255,255,.6); margin-top:2px; display:block; }
+    #popup-intro { font-size:13px; line-height:1.9; color:#333; text-align:right; direction:rtl; margin-bottom:14px; }
+    .popup-point { border-right:3px solid #1A3A6E; padding:10px 14px; margin-bottom:10px; background:#f4f8ff; border-radius:0 8px 8px 0; direction:rtl; text-align:right; }
+    .pp-title { font-size:12.5px; font-weight:700; color:#1A3A6E; margin-bottom:4px; }
+    .pp-body { font-size:11.5px; color:#555; line-height:1.7; }
+
+    .popup-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+    #popup-btn-new {
+      width:100%; background:linear-gradient(135deg,#1A3A6E,#1a7fd4); color:#fff; border:none;
+      border-radius:50px; padding:14px; font-size:15px; font-weight:700;
+      font-family:'Cairo',sans-serif; cursor:pointer;
+    }
+    #popup-btn-new:hover { opacity:.9; }
+    #popup-btn-edit {
+      width:100%; background:#f4f8ff; color:#1A3A6E; border: 2px solid #c5d6f0;
+      border-radius:50px; padding:12px; font-size:14px; font-weight:700;
+      font-family:'Cairo',sans-serif; cursor:pointer;
+    }
+    #popup-btn-edit:hover { background:#e4edf9; }
+
+    #popup-screen-2, #popup-screen-3 { display: none; }
+    .popup-back-btn {
+      background: none; border: none; color: var(--blue); font-family: 'Cairo', sans-serif;
+      font-size: 13px; font-weight: 700; cursor: pointer; padding: 0 0 14px 0; direction: rtl;
+    }
+    .popup-back-btn:hover { text-decoration: underline; }
+    .popup-screen-title { font-size: 16px; font-weight: 800; color: var(--blue-dark); margin-bottom: 16px; direction: rtl; }
+    .popup-hint { font-size: 12.5px; color: var(--muted); line-height: 1.8; margin-bottom: 16px; direction: rtl; }
+
+    .popup-field { margin-bottom: 14px; }
+    .popup-field label { display: block; font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; direction: rtl; }
+    .popup-field input, .popup-field select { width: 100%; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; font-family: 'Cairo', sans-serif; font-size: 14px; color: var(--text); background: #f7fafd; outline: none; direction: rtl; }
+    .popup-field input:focus, .popup-field select:focus { border-color: var(--blue); background: #fff; }
+    .popup-phone-wrap { display: flex; gap: 8px; }
+    .popup-phone-wrap input { flex: 1; min-width: 0; }
+    .popup-phone-wrap select { width: 150px; flex-shrink: 0; font-size: 12px; padding: 12px 8px 12px 32px; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7f99' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: left 8px center; }
+
+    #search-error { background: #fef0f0; border: 1px solid #fca5a5; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #b91c1c; margin-bottom: 12px; direction: rtl; display: none; }
+    #search-loading { text-align: center; color: var(--muted); font-size: 13px; padding: 8px; display: none; }
+
+    #popup-search-btn {
+      width: 100%; background: linear-gradient(135deg,#1A3A6E,#1a7fd4); color: #fff; border: none;
+      border-radius: 50px; padding: 13px; font-size: 15px; font-weight: 700;
+      font-family: 'Cairo', sans-serif; cursor: pointer; margin-top: 4px;
+    }
+    #popup-search-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .found-card { background: #f4f8ff; border: 2px solid #c5d6f0; border-radius: 12px; padding: 16px; margin-bottom: 16px; direction: rtl; }
+    .found-card .fc-name { font-size: 16px; font-weight: 800; color: var(--blue-dark); margin-bottom: 4px; }
+    .found-card .fc-id { font-size: 12px; color: var(--blue); font-weight: 700; margin-bottom: 10px; direction: ltr; text-align: right; }
+    .found-card .fc-row { display: flex; justify-content: space-between; font-size: 12.5px; border-top: 1px solid #dde8f5; padding-top: 6px; margin-top: 6px; }
+    .found-card .fc-row span:first-child { color: var(--muted); }
+    .found-card .fc-row span:last-child { font-weight: 600; color: var(--text); }
+
+    #popup-start-edit-btn {
+      width: 100%; background: linear-gradient(135deg,#1e8449,#27ae60); color: #fff; border: none;
+      border-radius: 50px; padding: 13px; font-size: 15px; font-weight: 700;
+      font-family: 'Cairo', sans-serif; cursor: pointer; margin-bottom: 10px;
+    }
+    #popup-cancel-edit-btn {
+      width: 100%; background: #f4f8ff; color: #1A3A6E; border: 2px solid #c5d6f0;
+      border-radius: 50px; padding: 11px; font-size: 14px; font-weight: 700;
+      font-family: 'Cairo', sans-serif; cursor: pointer;
+    }
+
+    #edit-mode-banner {
+      background: linear-gradient(135deg,#1e8449,#27ae60); color: #fff;
+      border-radius: var(--radius) var(--radius) 0 0; padding: 12px 20px;
+      text-align: center; font-size: 13px; font-weight: 700; display: none;
+    }
+
+
+    .footer { text-align: center; font-size: 13px; font-weight: 600; color: #0a2d6e; padding: 6px 18px; background: rgba(255,255,255,0.55); backdrop-filter: blur(4px); border-radius: 8px; display: inline-block; position: relative; z-index: 1; }
+
+    @media (max-width: 480px) {
+      .form-card { padding: 22px 16px; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: 1fr; }
+      .btn { font-size: 14px; padding: 12px 18px; }
+      .phone-wrap select { width: 130px; }
+    }
+
+    /* ── زرار خدمة العملاء العائم ── */
+    .float-hotline {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      cursor: pointer;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.25));
+    }
+    .float-hotline .fh-icon {
+      width: 52px; height: 52px;
+      background: linear-gradient(135deg, #1A3A6E, #1a7fd4);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+      transition: transform .2s;
+    }
+    .float-hotline:hover .fh-icon { transform: scale(1.1); }
+    .float-hotline .fh-label {
+      background: white;
+      color: #0a2d6e;
+      font-family: 'Cairo', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 14px 6px 10px;
+      border-radius: 24px 0 0 24px;
+      white-space: nowrap;
+      max-width: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-width .35s ease, opacity .3s ease, padding .3s ease;
+      direction: rtl;
+    }
+    .float-hotline:hover .fh-label {
+      max-width: 180px;
+      opacity: 1;
+      padding: 6px 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="popup-overlay">
+  <div id="popup-box">
+    <div id="popup-screen-1">
+      <div id="popup-badge">
+        <span class="pb-en" id="popup-badge-fallback" style="display:none">NATGAS</span>
+        <span class="pb-ar" id="popup-badge-ar" style="display:none">الشركة الوطنية للغاز الطبيعي</span>
+      </div>
+      <p id="popup-intro">عزيزي العميل، في إطار جهودنا المستمرة لتحسين جودة الخدمات وتوسيع شبكة التغطية للغاز الطبيعي، نقوم حالياً بإجراء حصر شامل لجميع العملاء الذين لم تصلهم خدمة الغاز الطبيعي بعد.<br><br>بناءً عليه، يرجى التكرم بالمساعدة والمساهمة في ملء البيانات المطلوبة في النموذج المرفق.<br><br>شاكرين لكم حسن تعاونكم وتجاوبكم السريع.</p>
+      <div class="popup-point">
+        <div class="pp-title">💡 دقة البيانات = راحة بالك</div>
+      </div>
+      <div class="popup-point">
+        <div class="pp-title">ℹ️ طبيعة البيان</div>
+        <div class="pp-body">هذا الاستبيان مخصص حصرياً للأغراض الإحصائية ولا يُرتّب أي التزامات قانونية أو تعاقدية على الشركة.</div>
+      </div>
+      <div class="popup-btns">
+        <button id="popup-btn-new" onclick="closePopup()">تسجيل جديد ←</button>
+        <button id="popup-btn-edit" onclick="showEditSearch()">🔄 تعديل بياناتي</button>
+      </div>
+    </div>
+
+    <div id="popup-screen-2">
+      <button class="popup-back-btn" onclick="backToScreen1()">→ رجوع</button>
+      <div class="popup-screen-title">🔍 تعديل بياناتك</div>
+      <p class="popup-hint">أدخل رقم التسجيل الذي حصلت عليه عند التسجيل ورقم موبايلك للبحث.</p>
+      <div class="popup-field">
+        <label>رقم التسجيل</label>
+        <input type="text" id="search-regid" placeholder="NG-0001" style="direction:ltr; text-align:center; font-size:16px; font-weight:700; letter-spacing:2px;" oninput="this.value=this.value.toUpperCase()"/>
+      </div>
+      <div class="popup-field">
+        <label>رقم الموبايل</label>
+        <div class="popup-phone-wrap">
+          <input type="tel" id="search-phone" placeholder="01xxxxxxxxx"/>
+          <select id="search-phone-code" onchange="updateSearchPlaceholder()">
+            <option value="+20" selected>🇪🇬 +20</option>
+            <option value="+966">🇸🇦 +966</option>
+            <option value="+971">🇦🇪 +971</option>
+            <option value="+965">🇰🇼 +965</option>
+            <option value="+973">🇧🇭 +973</option>
+            <option value="+974">🇶🇦 +974</option>
+            <option value="+968">🇴🇲 +968</option>
+            <option value="+962">🇯🇴 +962</option>
+            <option value="+961">🇱🇧 +961</option>
+            <option value="+963">🇸🇾 +963</option>
+            <option value="+964">🇮🇶 +964</option>
+            <option value="+218">🇱🇾 +218</option>
+            <option value="+216">🇹🇳 +216</option>
+            <option value="+213">🇩🇿 +213</option>
+            <option value="+212">🇲🇦 +212</option>
+            <option value="+249">🇸🇩 +249</option>
+            <option value="+967">🇾🇪 +967</option>
+            <option value="+970">🇵🇸 +970</option>
+          </select>
+        </div>
+      </div>
+      <div id="search-error"></div>
+      <div id="search-loading">⏳ جاري البحث...</div>
+      <button id="popup-search-btn" onclick="doSearch()">🔍 بحث</button>
+    </div>
+
+    <div id="popup-screen-3">
+      <button class="popup-back-btn" onclick="backToScreen2()">→ رجوع</button>
+      <div class="popup-screen-title">✅ تم العثور على بياناتك</div>
+      <div class="found-card" id="found-card-content"></div>
+      <button id="popup-start-edit-btn" onclick="startEdit()">✏️ تعديل البيانات</button>
+      <button id="popup-cancel-edit-btn" onclick="backToScreen1()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="logo-wrap">
+      <img src="natgas_logo.png" alt="NATGAS" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
+      <div class="logo-fallback"><span>NAT</span><span>GAS</span></div>
+    </div>
+    <h1>استمارة الغاز</h1>
+    <p>يرجى ملء البيانات بدقة لتحديد جدوى توصيل الغاز بالقطاع</p>
+    <a href="https://drive.google.com/file/d/19TSEAc8WlFm0AuGa64eX1nmKb5N47tHE/view?usp=drive_link" target="_blank"
+       style="display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:9px 20px;background:rgba(255,255,255,0.9);color:#0a2d6e;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;border-radius:24px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,0.15);transition:transform .2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#e74c3c"><path d="M8 5v14l11-7z"/></svg>
+      شاهد فيديو الشرح
+    </a>
+  </div>
+</div>
+
+<div class="container">
+  <div class="step-indicator" id="step-indicator">
+    <div class="step-item active" id="ind-1">
+      <div class="step-num">1</div>
+      <div class="step-label">المشروع والوحدة</div>
+    </div>
+    <div class="step-item" id="ind-2">
+      <div class="step-num">2</div>
+      <div class="step-label">بيانات العميل</div>
+    </div>
+    <div class="step-item" id="ind-3">
+      <div class="step-num">3</div>
+      <div class="step-label">المطبخ والإرسال</div>
+    </div>
+  </div>
+
+  <div id="edit-mode-banner">🔄 أنت في وضع التعديل — رقم التسجيل: <span id="banner-reg-id"></span></div>
+  <div class="form-card" id="form-card">
+
+    <div class="step active" id="step-1">
+      <div class="step-title"><span class="icon">🏢</span> المشروع والوحدة</div>
+      <p class="step-sub">اختر المشروع وأدخل بيانات الوحدة السكنية</p>
+      <div class="field">
+        <label><span class="req">*</span> اسم المشروع</label>
+        <div class="project-search-wrap" id="project-wrap">
+          <input type="text" id="projectSearch" placeholder="ابحث واختر من القائمة..." autocomplete="off"
+            oninput="filterProjects(this.value)" onfocus="showProjects()" onblur="hideProjectsDelayed()" onkeydown="return true"/>
+          <input type="hidden" id="project" value=""/>
+          <div class="project-dropdown" id="projectDropdown"></div>
+        </div>
+        <div class="err-msg" id="e-project">الرجاء اختيار أو كتابة اسم المشروع</div>
+      </div>
+      <div class="field">
+        <label for="address"><span class="req">*</span> العنوان بالتفصيل</label>
+        <textarea id="address" placeholder="مثال: شارع النصر، العمارة رقم 5..."></textarea>
+        <div class="err-msg" id="e-address">الرجاء إدخال العنوان</div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="building"><span class="req">*</span> رقم العمارة</label>
+          <input type="text" id="building" placeholder="مثال: 12" oninput="this.value=this.value.replace(/[٠-٩۰-۹]/g,d=>d.charCodeAt(0)-(d.charCodeAt(0)>=0x06F0?0x06F0:0x0660))"/>
+          <div class="err-msg" id="e-building">مطلوب</div>
+        </div>
+        <div class="field">
+          <label for="apartment">رقم الشقة <span class="opt">(اختياري)</span></label>
+          <input type="text" id="apartment" placeholder="مثال: 5" oninput="this.value=this.value.replace(/[٠-٩۰-۹]/g,d=>d.charCodeAt(0)-(d.charCodeAt(0)>=0x06F0?0x06F0:0x0660))"/>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-next" onclick="goNext(1)">التالي ←</button>
+      </div>
+    </div>
+
+    <div class="step" id="step-2">
+      <div class="step-title"><span class="icon">👤</span> بيانات العميل</div>
+      <p class="step-sub">أدخل اسمك ورقم التواصل</p>
+      <div class="field">
+        <label for="fullname"><span class="req">*</span> الاسم بالكامل</label>
+        <input type="text" id="fullname" placeholder="الاسم الرباعي"/>
+        <div class="err-msg" id="e-fullname">الرجاء إدخال الاسم</div>
+      </div>
+      <div class="field">
+        <label><span class="req">*</span> رقم الموبايل</label>
+        <div class="phone-wrap">
+          <input type="tel" id="phone" placeholder="01xxxxxxxxx" oninput="this.value=this.value.replace(/[٠-٩۰-۹]/g,d=>d.charCodeAt(0)-(d.charCodeAt(0)>=0x06F0?0x06F0:0x0660))"/>
+          <select id="phoneCode" onchange="updatePhonePlaceholder()">
+            <option value="+20" data-placeholder="01xxxxxxxxx" selected>🇪🇬 مصر +20</option>
+            <option value="+966" data-placeholder="05xxxxxxxx">🇸🇦 السعودية +966</option>
+            <option value="+971" data-placeholder="05xxxxxxxx">🇦🇪 الإمارات +971</option>
+            <option value="+965" data-placeholder="9xxxxxxx">🇰🇼 الكويت +965</option>
+            <option value="+973" data-placeholder="3xxxxxxx">🇧🇭 البحرين +973</option>
+            <option value="+974" data-placeholder="3xxxxxxx">🇶🇦 قطر +974</option>
+            <option value="+968" data-placeholder="9xxxxxxx">🇴🇲 عُمان +968</option>
+            <option value="+962" data-placeholder="07xxxxxxxx">🇯🇴 الأردن +962</option>
+            <option value="+961" data-placeholder="70xxxxxx">🇱🇧 لبنان +961</option>
+            <option value="+963" data-placeholder="09xxxxxxxx">🇸🇾 سوريا +963</option>
+            <option value="+964" data-placeholder="07xxxxxxxxx">🇮🇶 العراق +964</option>
+            <option value="+218" data-placeholder="091xxxxxxx">🇱🇾 ليبيا +218</option>
+            <option value="+216" data-placeholder="2xxxxxxx">🇹🇳 تونس +216</option>
+            <option value="+213" data-placeholder="05xxxxxxxx">🇩🇿 الجزائر +213</option>
+            <option value="+212" data-placeholder="06xxxxxxxx">🇲🇦 المغرب +212</option>
+            <option value="+249" data-placeholder="09xxxxxxxx">🇸🇩 السودان +249</option>
+            <option value="+967" data-placeholder="7xxxxxxxxx">🇾🇪 اليمن +967</option>
+            <option value="+970" data-placeholder="059xxxxxxx">🇵🇸 فلسطين +970</option>
+          </select>
+        </div>
+        <div class="err-msg" id="e-phone">أدخل رقم موبايل صحيح</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-back" onclick="goBack(2)">→ السابق</button>
+        <button class="btn btn-next" onclick="goNext(2)">التالي ←</button>
+      </div>
+    </div>
+
+    <div class="step" id="step-3">
+      <div class="step-title"><span class="icon">🍳</span> حالة المطبخ والإرسال</div>
+      <p class="step-sub">أدخل بيانات المطبخ ثم راجع بياناتك قبل الإرسال</p>
+      <div class="field">
+        <label><span class="req">*</span> نوع تشطيب المطبخ</label>
+        <div class="radio-group">
+          <label class="radio-card" onclick="pickKitchen(this,'سيراميك')">
+            <input type="radio" name="kitchen" value="سيراميك"/>
+            <div class="radio-dot"></div>
+            <div class="radio-card-body">
+              <div class="radio-card-title">سيراميك</div>
+              <div class="radio-card-desc">المطبخ مكسو بالسيراميك</div>
+            </div>
+            <div class="radio-card-emoji">🪟</div>
+          </label>
+          <label class="radio-card" onclick="pickKitchen(this,'طوب أحمر أو محارة')">
+            <input type="radio" name="kitchen" value="طوب أحمر أو محارة"/>
+            <div class="radio-dot"></div>
+            <div class="radio-card-body">
+              <div class="radio-card-title">طوب أحمر أو محارة</div>
+              <div class="radio-card-desc">المطبخ غير مشطب أو محارة</div>
+            </div>
+            <div class="radio-card-emoji">🧱</div>
+          </label>
+        </div>
+        <div class="err-msg" id="e-kitchen">الرجاء اختيار نوع المطبخ</div>
+      </div>
+      <div class="conditional" id="kitchen-photo-wrap">
+        <div class="field">
+          <label>صورة المطبخ <span class="req">*</span> <span style="font-size:11px;color:#e74c3c;">(مطلوبة للسيراميك)</span></label>
+          <div class="upload-box" id="kb-box" onclick="document.getElementById('kitchenPhoto').click()">
+            <input type="file" id="kitchenPhoto" accept="image/*" onchange="handleUpload(this,'kb-box','kb-name','kb-preview')"/>
+            <div class="upload-icon">📸</div>
+            <div class="upload-hint">اضغط لاختيار صورة المطبخ<br/><strong>JPG، PNG، HEIC</strong></div>
+            <div class="upload-fname" id="kb-name"></div>
+            <img class="upload-preview" id="kb-preview"/>
+          </div>
+          <div class="err-msg" id="e-kitchen-photo">صورة المطبخ مطلوبة عند اختيار سيراميك</div>
+        </div>
+      </div>
+      <div class="field" style="margin-top:18px">
+        <label>صورة استيكر الغاز <span class="opt">(إن وجد)</span></label>
+        <div class="upload-box" id="st-box" onclick="document.getElementById('stickerPhoto').click()">
+          <input type="file" id="stickerPhoto" accept="image/*" onchange="handleUpload(this,'st-box','st-name','st-preview')"/>
+          <div class="upload-icon">🔖</div>
+          <div class="upload-hint">اضغط لرفع صورة الاستيكر<br/><strong>JPG، PNG</strong></div>
+          <div class="upload-fname" id="st-name"></div>
+          <img class="upload-preview" id="st-preview"/>
+        </div>
+      </div>
+      <div class="field">
+        <label for="stickerNum">أرقام استيكر الغاز <span class="opt">(إن وجد)</span></label>
+        <input type="text" id="stickerNum" placeholder="الأرقام الموجودة على الاستيكر" oninput="this.value=this.value.replace(/[٠-٩۰-۹]/g,d=>d.charCodeAt(0)-(d.charCodeAt(0)>=0x06F0?0x06F0:0x0660))"/>
+      </div>
+      <div style="margin-top:24px; margin-bottom:10px; font-size:14px; font-weight:700; color:var(--blue-dark);">📋 مراجعة البيانات</div>
+      <div class="summary-grid" id="summary-grid"></div>
+      <div class="notice">ℹ️ بضغطك على إرسال، أنت تساعدنا في تقديم أفضل خدمة من خلال التأكد من صحة بياناتك.</div>
+      <div class="btn-row">
+        <button class="btn btn-back" onclick="goBack(3)">→ السابق</button>
+        <button class="btn btn-submit" id="submitBtn" onclick="submitForm()">
+          <div class="spinner" id="spin"></div>
+          <span id="submitTxt">إرسال الاستمارة ✉️</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="success">
+    <div class="success-inner">
+      <div class="check-anim">✓</div>
+      <h2 id="success-title">تم الإرسال بنجاح! 🎉</h2>
+      <p id="success-msg">شكراً لك. تم تسجيل بياناتك وسيتم التواصل معك قريباً من فريق ناتجاس.</p>
+      <div id="reg-id-section" style="display:none">
+        <div class="reg-id-badge">
+          <div class="rib-label">رقم التسجيل الخاص بك</div>
+          <div class="rib-id" id="reg-id-display">—</div>
+          <div class="rib-note">احتفظ بهذا الرقم — ستحتاجه لتعديل بياناتك</div>
+        </div>
+        <br/>
+        <button class="copy-btn" id="copy-btn" onclick="copyRegId()">📋 نسخ الرقم</button>
+      </div>
+      <div class="success-btns">
+        <button class="btn-reset" onclick="resetAll()">تسجيل جديد</button>
+        <button class="btn-edit-again" onclick="openEditMode()">🔄 تعديل بياناتي</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center; padding: 16px 0;"><span class="footer">جميع الحقوق محفوظة © الشركة الوطنية للغاز — ناتجاس &nbsp;|&nbsp; <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#27ae60" style="vertical-align:middle;margin-left:3px;"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z"/></svg> خدمة العملاء: <a href="tel:19990" style="color:#0a2d6e; font-weight:700; text-decoration:none;">19990</a></span></div>
+
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyRWJfU2sEQmJUUmdkI3mOA9GwqJ6tsMt0Oyto0nnq1SdnVDQRgTay7EJFHONQcF0kjaw/exec';
+
+  // كشف لو صورة الـ popup مش موجودة وإظهار الـ fallback
+  const _testImg = new Image();
+  _testImg.onerror = () => {
+    document.getElementById('popup-badge-fallback').style.display = 'block';
+    document.getElementById('popup-badge-ar').style.display = 'block';
+  };
+  _testImg.src = 'images-popup.jpg';
+
+  const _heroImg = new Image();
+  _heroImg.onload = () => {
+    document.body.style.background = "url('hero_bg.jpg') center/cover no-repeat scroll";
+    document.body.style.backgroundAttachment = 'scroll';
+    document.body.classList.add('hero-loaded');
+  };
+  _heroImg.src = 'hero_bg.jpg';
+
+  let editMode  = false;
+  let editRegId = '';
+  let foundData = null;
+  const fileData = { kitchenPhoto: null, stickerPhoto: null };
+
+  const PROJECTS = [
+    'اللوتس','الرباب','العبير جاردنز','البستان','جرين بردايس',
+    'الجنة الخضراء',' صفوه الاعلاميين 1 ','هاي لاند بارك','بالم فيو','تاون فيو',
+    'الحي الاسبانى','واحة الريحان','حي المنتزة','الحي الإيطالي','راية سيتي',
+    'بيت المصرية','الرحاب سيتي','ايست بارك','استوريا','جاردن هيلز',
+    'دجلة جاردنز','المدينة المنورة','روزبيت','براديس','رويال فالى',
+    'الدولية','البسيط','قرطبة','بداية 1','الكاميليا',
+    'اليكو سيتي','بارك فيل','السكر','رؤية سيتي','دجلة بالمز المرحلة الاولى','قرية الموند',
+    'اسكان جامعة القاهرة','جنة 2','جنة مصر الشيخ زايد','الخمائل','الكناريا',
+    'جنة مصر التوسعات الشمالية','المروج','ماونتن فيو','دار مصر حى 16','الشروق',
+    'حدائق الفردوس','دار مصر حى 12','جنة 4','نقابة التطبيقيين','ايكون بارك',
+    'الفردوس شرطة','الفردوس قوات مسلحة','هاى توين','طيبه جاردنز','جرين يارد',
+    'بيتا جرينز','بيتا جاردنز','بيتا جولف ريزيدنس','نقابة المهندسين','اشراقة',
+    'الياسمين لاسكان ضباط الصف','جمعية الصناعات الصغيرة','كمبوند كنز','روك ايدن','ليك فرونت'
+  ];
+
+  function renderDropdown(list) {
+    const dd = document.getElementById('projectDropdown');
+    dd.innerHTML = list.length
+      ? list.map(p => `<div class="project-option" onmousedown="selectProject('${p.replace(/'/g,"\\'")}')">${p}</div>`).join('')
+      : '<div class="project-option no-result">لا توجد نتائج — سيتم حفظ ما كتبته</div>';
+    dd.classList.add('open');
+  }
+  function filterProjects(val) {
+    // امسح الاختيار لو الناس بدأت تكتب من جديد
+    document.getElementById('project').value = '';
+    if (!val.trim()) { renderDropdown(PROJECTS); return; }
+    renderDropdown(PROJECTS.filter(p => p.includes(val) || val.includes(p.substring(0,3))));
+  }
+  function showProjects() { filterProjects(document.getElementById('projectSearch').value || ''); }
+  function hideProjectsDelayed() {
+    setTimeout(() => {
+      document.getElementById('projectDropdown').classList.remove('open');
+      // لو الناس كتبت بس ما اختارتش من القائمة، امسح الكتابة
+      const projVal = document.getElementById('project').value;
+      const searchVal = document.getElementById('projectSearch').value.trim();
+      if (searchVal && !projVal) {
+        document.getElementById('projectSearch').value = '';
+      }
+    }, 200);
+  }
+  function selectProject(val) {
+    document.getElementById('projectSearch').value = val;
+    document.getElementById('project').value = val;
+    document.getElementById('projectDropdown').classList.remove('open');
+    document.getElementById('projectSearch').classList.remove('err');
+    document.getElementById('e-project').classList.remove('show');
+  }
+
+  function updatePhonePlaceholder() {
+    const sel = document.getElementById('phoneCode');
+    const opt = sel.options[sel.selectedIndex];
+    document.getElementById('phone').placeholder = opt.dataset.placeholder || '0xxxxxxxxx';
+    document.getElementById('phone').value = '';
+  }
+
+  const PHONE_RULES = {
+    '+20':  { regex: /^01[0-9]{9}$/,      hint: 'يبدأ بـ 01 ويتكون من 11 رقم' },
+    '+966': { regex: /^05[0-9]{8}$/,       hint: 'يبدأ بـ 05 ويتكون من 10 أرقام' },
+    '+971': { regex: /^0[5-9][0-9]{7,8}$/, hint: 'يبدأ بـ 05 ويتكون من 9-10 أرقام' },
+    '+965': { regex: /^[569][0-9]{7}$/,    hint: 'يتكون من 8 أرقام' },
+    '+973': { regex: /^[3-9][0-9]{7}$/,    hint: 'يتكون من 8 أرقام' },
+    '+974': { regex: /^[3-9][0-9]{7}$/,    hint: 'يتكون من 8 أرقام' },
+    '+968': { regex: /^[79][0-9]{7}$/,     hint: 'يتكون من 8 أرقام' },
+    '+962': { regex: /^07[789][0-9]{7}$/,  hint: 'يبدأ بـ 07 ويتكون من 10 أرقام' },
+    '+961': { regex: /^0?[37][0-9]{7}$/,   hint: 'يتكون من 7-8 أرقام' },
+    '+963': { regex: /^09[0-9]{8}$/,       hint: 'يبدأ بـ 09 ويتكون من 10 أرقام' },
+    '+964': { regex: /^07[0-9]{9}$/,       hint: 'يبدأ بـ 07 ويتكون من 11 رقم' },
+    '+218': { regex: /^0?9[0-9]{8}$/,      hint: 'يتكون من 9-10 أرقام' },
+    '+216': { regex: /^[2-9][0-9]{7}$/,    hint: 'يتكون من 8 أرقام' },
+    '+213': { regex: /^0[5-7][0-9]{8}$/,   hint: 'يبدأ بـ 05-07 ويتكون من 10 أرقام' },
+    '+212': { regex: /^0[5-7][0-9]{8}$/,   hint: 'يبدأ بـ 06 ويتكون من 10 أرقام' },
+    '+249': { regex: /^09[0-9]{8}$/,       hint: 'يبدأ بـ 09 ويتكون من 10 أرقام' },
+    '+967': { regex: /^07[0-9]{8}$/,       hint: 'يبدأ بـ 07 ويتكون من 9 أرقام' },
+    '+970': { regex: /^05[0-9]{8}$/,       hint: 'يبدأ بـ 05 ويتكون من 10 أرقام' },
+  };
+
+  function validatePhone() {
+    const code = document.getElementById('phoneCode').value;
+    const num  = document.getElementById('phone').value.trim();
+    const rule = PHONE_RULES[code];
+    return rule ? rule.regex.test(num) : /^[0-9]{6,15}$/.test(num);
+  }
+  function getPhoneHint() { return PHONE_RULES[document.getElementById('phoneCode').value]?.hint || ''; }
+
+  function updateSearchPlaceholder() {
+    const maps = { '+20':'01xxxxxxxxx','+966':'05xxxxxxxx','+971':'05xxxxxxxx' };
+    document.getElementById('search-phone').placeholder = maps[document.getElementById('search-phone-code').value] || '0xxxxxxxxx';
+  }
+
+  function closePopup() {
+    const o = document.getElementById('popup-overlay');
+    o.style.transition = 'opacity .25s'; o.style.opacity = '0';
+    setTimeout(() => o.remove(), 260);
+  }
+  function showEditSearch() {
+    document.getElementById('popup-screen-1').style.display = 'none';
+    document.getElementById('popup-screen-2').style.display = 'block';
+    document.getElementById('search-error').style.display = 'none';
+    document.getElementById('search-loading').style.display = 'none';
+    document.getElementById('search-regid').value = '';
+    document.getElementById('search-phone').value = '';
+  }
+  function backToScreen1() {
+    document.getElementById('popup-screen-1').style.display = 'block';
+    document.getElementById('popup-screen-2').style.display = 'none';
+    document.getElementById('popup-screen-3').style.display = 'none';
+  }
+  function backToScreen2() {
+    document.getElementById('popup-screen-2').style.display = 'block';
+    document.getElementById('popup-screen-3').style.display = 'none';
+  }
+  function openEditMode() { location.reload(); }
+
+  async function doSearch() {
+    const regId = document.getElementById('search-regid').value.trim();
+    const phone = document.getElementById('search-phone').value.trim();
+    const errEl = document.getElementById('search-error');
+    const loadEl = document.getElementById('search-loading');
+    const btn = document.getElementById('popup-search-btn');
+    errEl.style.display = 'none';
+    if (!regId || !regId.startsWith('NG-')) {
+      errEl.textContent = '❌ أدخل رقم التسجيل بالشكل الصحيح (مثال: NG-0001)';
+      errEl.style.display = 'block'; return;
+    }
+    if (phone.length < 8) {
+      errEl.textContent = '❌ أدخل رقم موبايل صحيح';
+      errEl.style.display = 'block'; return;
+    }
+    btn.disabled = true; loadEl.style.display = 'block';
+    try {
+      const res  = await fetch(`${SCRIPT_URL}?action=search&regId=${encodeURIComponent(regId)}&phone=${encodeURIComponent(phone)}`);
+      const data = await res.json();
+      if (data.status === 'found') { foundData = data; showFoundResult(data); }
+      else { errEl.textContent = '❌ ' + (data.message || 'رقم التسجيل أو الموبايل غير صحيح'); errEl.style.display = 'block'; }
+    } catch(e) {
+      errEl.textContent = '❌ حدث خطأ في الاتصال. تحقق من الإنترنت وحاول مرة أخرى.';
+      errEl.style.display = 'block';
+    } finally { btn.disabled = false; loadEl.style.display = 'none'; }
+  }
+
+  function showFoundResult(data) {
+    document.getElementById('popup-screen-2').style.display = 'none';
+    document.getElementById('popup-screen-3').style.display = 'block';
+    document.getElementById('found-card-content').innerHTML = `
+      <div class="fc-name">${data.fullname||'—'}</div>
+      <div class="fc-id">${data.regId}</div>
+      <div class="fc-row"><span>المشروع</span><span>${data.project||'—'}</span></div>
+      <div class="fc-row"><span>العمارة</span><span>${data.building||'—'} / شقة ${data.apartment||'—'}</span></div>
+      <div class="fc-row"><span>الموبايل</span><span dir="ltr">${data.phone||'—'}</span></div>
+      <div class="fc-row"><span>المطبخ</span><span>${data.kitchen||'—'}</span></div>`;
+  }
+
+  function startEdit() {
+    if (!foundData) return;
+    selectProject(foundData.project || '');
+    document.getElementById('address').value   = foundData.address   || '';
+    document.getElementById('building').value  = foundData.building  || '';
+    document.getElementById('apartment').value = foundData.apartment || '';
+    document.getElementById('fullname').value  = foundData.fullname  || '';
+    document.getElementById('phone').value = foundData.phone || '';
+    if (foundData.kitchen) {
+      document.querySelectorAll('input[name="kitchen"]').forEach(r => {
+        if (r.value === foundData.kitchen) {
+          r.closest('.radio-card').classList.add('selected'); r.checked = true;
+          if (foundData.kitchen === 'سيراميك') document.getElementById('kitchen-photo-wrap').classList.add('show');
+        }
+      });
+    }
+    document.getElementById('stickerNum').value = foundData.stickerNum || '';
+    editMode = true; editRegId = foundData.regId;
+    document.getElementById('edit-mode-banner').style.display = 'block';
+    document.getElementById('banner-reg-id').textContent = editRegId;
+    document.getElementById('submitTxt').textContent = 'حفظ التعديلات ✏️';
+    closePopup();
+  }
+
+  function goNext(from) { if (!validateStep(from)) return; showStep(from+1, false); if (from+1===3) buildSummary(); }
+  function goBack(from) { showStep(from-1, true); }
+  function showStep(to, isBack) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active','back'));
+    const el = document.getElementById('step-'+to);
+    el.classList.add('active'); if (isBack) el.classList.add('back');
+    updateIndicator(to); window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function updateIndicator(active) {
+    for (let i=1; i<=3; i++) {
+      const el = document.getElementById('ind-'+i);
+      const num = el.querySelector('.step-num');
+      el.classList.remove('active','done');
+      if (i < active)   { el.classList.add('done');   num.textContent = '✓'; }
+      if (i === active) { el.classList.add('active'); num.textContent = i; }
+      if (i > active)   { num.textContent = i; }
+    }
+  }
+
+  function validateStep(step) {
+    let ok = true;
+    if (step === 1) {
+      const projVal = document.getElementById('project').value.trim();
+      const projInput = document.getElementById('projectSearch');
+      const validProject = PROJECTS.includes(projVal);
+      if (!projVal || !validProject) {
+        projInput.classList.add('err');
+        document.getElementById('e-project').textContent = projVal && !validProject ? 'الرجاء الاختيار من القائمة فقط' : 'مطلوب';
+        document.getElementById('e-project').classList.add('show');
+        ok = false;
+      } else {
+        projInput.classList.remove('err');
+        document.getElementById('e-project').classList.remove('show');
+      }
+      ok = chk('address','e-address', v=>v.trim()!=='') & ok;
+      ok = chk('building','e-building', v=>v.trim()!=='') & ok;
+    }
+    if (step === 2) {
+      ok = chk('fullname','e-fullname', v=>v.trim()!=='') & ok;
+      const phoneOk = validatePhone();
+      document.getElementById('phone').classList.toggle('err', !phoneOk);
+      const ePhone = document.getElementById('e-phone');
+      if (!phoneOk) { const hint=getPhoneHint(); ePhone.textContent='رقم غير صحيح'+(hint?' — '+hint:''); ePhone.classList.add('show'); ok=false; }
+      else ePhone.classList.remove('show');
+    }
+    if (step === 3) {
+      const k = document.querySelector('input[name="kitchen"]:checked');
+      const errK = document.getElementById('e-kitchen');
+      if (!k) { errK.classList.add('show'); ok=false; } else errK.classList.remove('show');
+      // صورة المطبخ مطلوبة لو السيراميك
+      if (k && k.value === 'سيراميك' && !fileData.kitchenPhoto) {
+        document.getElementById('e-kitchen-photo').classList.add('show');
+        document.getElementById('kb-box').style.borderColor = '#e74c3c';
+        ok = false;
+      } else {
+        document.getElementById('e-kitchen-photo').classList.remove('show');
+        document.getElementById('kb-box').style.borderColor = '';
+      }
+    }
+    if (!ok) document.querySelector('.err-msg.show')?.scrollIntoView({behavior:'smooth',block:'center'});
+    return !!ok;
+  }
+  function chk(id, errId, fn) {
+    const el = document.getElementById(id); const valid = fn(el.value);
+    el.classList.toggle('err', !valid); document.getElementById(errId).classList.toggle('show', !valid);
+    return valid;
+  }
+  document.querySelectorAll('input, select, textarea').forEach(el => {
+    el.addEventListener('input', () => {
+      el.classList.remove('err');
+      const e = document.getElementById('e-'+el.id); if (e) e.classList.remove('show');
+    });
+  });
+
+  function pickKitchen(card, val) {
+    document.querySelectorAll('input[name="kitchen"]').forEach(r => r.closest('.radio-card').classList.remove('selected'));
+    card.classList.add('selected'); card.querySelector('input').checked = true;
+    document.getElementById('e-kitchen').classList.remove('show');
+    document.getElementById('kitchen-photo-wrap').classList.toggle('show', val==='سيراميك');
+  }
+
+  function handleUpload(input, boxId, nameId, previewId) {
+    const file = input.files[0]; if (!file) return;
+    document.getElementById(boxId).classList.add('filled');
+    document.getElementById(nameId).textContent = '✅ ' + file.name;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const prev = document.getElementById(previewId);
+      prev.src = e.target.result; prev.style.display = 'block';
+      if (input.id === 'kitchenPhoto') {
+        fileData.kitchenPhoto = e.target.result;
+        document.getElementById('e-kitchen-photo').classList.remove('show');
+        document.getElementById('kb-box').style.borderColor = '';
+      }
+      if (input.id === 'stickerPhoto') fileData.stickerPhoto = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function buildSummary() {
+    const items = [
+      { label:'اسم المشروع',   val: document.getElementById('project').value },
+      { label:'العنوان',        val: g('address') },
+      { label:'رقم العمارة',   val: g('building') },
+      { label:'رقم الشقة',     val: g('apartment')||'—' },
+      { label:'الاسم بالكامل', val: g('fullname') },
+      { label:'رقم الموبايل',  val: g('phone') },
+    ];
+    document.getElementById('summary-grid').innerHTML = items.map(i =>
+      `<div class="summary-item"><div class="s-label">${i.label}</div><div class="s-val">${i.val}</div></div>`).join('');
+  }
+  const g = id => document.getElementById(id)?.value || '';
+  // تحويل الأرقام العربية/الهندية → إنجليزية
+  const toWest = s => String(s||'').replace(/[٠-٩۰-۹]/g, d => d.charCodeAt(0) - (d.charCodeAt(0) >= 0x06F0 ? 0x06F0 : 0x0660));
+
+  async function submitForm() {
+    if (!validateStep(3)) return;
+    const btn=document.getElementById('submitBtn'), spin=document.getElementById('spin'), txt=document.getElementById('submitTxt');
+    btn.disabled=true; spin.style.display='block'; txt.textContent='جاري الإرسال...';
+    const payload = {
+      timestamp: new Date().toLocaleString('ar-EG'),
+      project:   document.getElementById('project').value,
+      address:   g('address'), building: toWest(g('building')), apartment: toWest(g('apartment')),
+      fullname:  g('fullname'), phone: toWest(document.getElementById('phone').value.trim()),
+      kitchen:   document.querySelector('input[name="kitchen"]:checked')?.value || '',
+      stickerNum: toWest(g('stickerNum')),
+      kitchenPhoto: fileData.kitchenPhoto || '',
+      stickerPhoto: fileData.stickerPhoto || '',
+    };
+    if (editMode) { payload.action='update'; payload.regId=editRegId; }
+    let receivedRegId = editMode ? editRegId : '';
+    try {
+      const res = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload) });
+      const data = await res.json();
+      if (data.regId) receivedRegId = data.regId;
+    } catch(e) {}
+    showSuccessScreen(receivedRegId);
+  }
+
+  function showSuccessScreen(regId) {
+    document.getElementById('form-card').style.display='none';
+    document.getElementById('step-indicator').style.display='none';
+    document.getElementById('edit-mode-banner').style.display='none';
+    document.getElementById('success').style.display='block';
+    if (editMode) {
+      document.getElementById('success-title').textContent='تم التعديل بنجاح! ✏️';
+      document.getElementById('success-msg').textContent='تم تحديث بياناتك. رقم تسجيلك لم يتغير.';
+    }
+    if (regId) {
+      document.getElementById('reg-id-section').style.display='block';
+      document.getElementById('reg-id-display').textContent=regId;
+    }
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function copyRegId() {
+    const id = document.getElementById('reg-id-display').textContent;
+    navigator.clipboard.writeText(id).then(() => {
+      const btn=document.getElementById('copy-btn');
+      btn.textContent='✅ تم النسخ'; btn.classList.add('copied');
+      setTimeout(()=>{ btn.textContent='📋 نسخ الرقم'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  function resetAll() {
+    document.querySelectorAll('input, select, textarea').forEach(el => { if(el.type!=='hidden') el.value=el.defaultValue||''; });
+    document.getElementById('project').value=''; document.getElementById('projectSearch').value='';
+    document.querySelectorAll('.radio-card').forEach(c=>c.classList.remove('selected'));
+    document.querySelectorAll('input[name="kitchen"]').forEach(r => r.checked=false);
+    document.querySelectorAll('.upload-preview').forEach(p => p.style.display='none');
+    document.querySelectorAll('.upload-name').forEach(n => n.textContent='');
+    document.getElementById('kitchen-photo-wrap').classList.remove('show');
+    fileData.kitchenPhoto=null; fileData.stickerPhoto=null;
+    editMode=false; editRegId='';
+    document.getElementById('submitTxt').textContent='إرسال الاستمارة ✉️';
+    document.getElementById('submitBtn').disabled=false;
+    document.getElementById('spin').style.display='none';
+    document.querySelectorAll('.step').forEach(s=>s.classList.remove('active','back'));
+    document.getElementById('step-1').classList.add('active');
+    document.getElementById('form-card').style.display='block';
+    document.getElementById('step-indicator').style.display='flex';
+    document.getElementById('success').style.display='none';
+    document.getElementById('edit-mode-banner').style.display='none';
+    document.getElementById('success-title').textContent='تم الإرسال بنجاح! 🎉';
+    document.getElementById('success-msg').textContent='شكراً لك. تم تسجيل بياناتك وسيتم التواصل معك قريباً من فريق ناتجاس.';
+    document.getElementById('reg-id-section').style.display='none';
+    updateIndicator(1); window.scrollTo({top:0,behavior:'smooth'});
+  }
+</script>
+
+
+</body>
+</html>
