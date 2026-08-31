@@ -466,12 +466,12 @@
       <div class="grid-2">
         <div class="field">
           <label for="building"><span class="req">*</span> رقم العمارة</label>
-          <input type="text" id="building" placeholder="مثال: 12" oninput="this.value=this.value.replace(/[٠-٩۰-۹]/g,d=>d.charCodeAt(0)-(d.charCodeAt(0)>=0x06F0?0x06F0:0x0660))"/>
+          <input type="text" id="building" placeholder="مثال: 12" maxlength="10" oninput="this.value=this.value.replace(/[٠-٩۰-۹]/g,d=>d.charCodeAt(0)-(d.charCodeAt(0)>=0x06F0?0x06F0:0x0660))"/>
           <div class="err-msg" id="e-building">مطلوب</div>
         </div>
         <div class="field">
           <label for="apartment">رقم الشقة <span class="opt">(اختياري)</span></label>
-          <input type="text" id="apartment" placeholder="مثال: 5" oninput="this.value=this.value.replace(/[٠-٩۰-۹]/g,d=>d.charCodeAt(0)-(d.charCodeAt(0)>=0x06F0?0x06F0:0x0660))"/>
+          <input type="text" id="apartment" placeholder="مثال: 5" maxlength="10" oninput="this.value=this.value.replace(/[٠-٩۰-۹]/g,d=>d.charCodeAt(0)-(d.charCodeAt(0)>=0x06F0?0x06F0:0x0660))"/>
         </div>
       </div>
       <div class="btn-row">
